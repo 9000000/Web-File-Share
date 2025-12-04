@@ -1,0 +1,14 @@
+version: '3.8'
+
+services:
+  web-file-share:
+    build: .
+    container_name: web-file-share
+    ports:
+      - "37000:37000"
+    volumes:
+      - ./uploads:/app/uploads
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - PORT=37000

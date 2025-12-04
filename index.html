@@ -10,7 +10,12 @@
     <div class="container">
         <h1>WebDrop</h1>
 
-        <div class="upload-section">
+        <div class="notice">
+            ⚠️ Tất cả các file được tải lên sẽ tự động bị xoá sau 2 giờ.<br>
+            📁 Giới hạn dung lượng file: <strong>500 MB</strong>
+        </div>
+
+        <div class="upload-section"></div>
             <h2>Upload a File</h2>
             <form id="uploadForm" enctype="multipart/form-data">
                 <input type="file" name="file" id="fileInput" required>
@@ -25,26 +30,50 @@
 
         <div class="download-section">
             <h2>Files Available for Download</h2>
-            <ul id="fileList"></ul>
+            <table id="fileTable">
+                <thead>
+                    <tr>
+                        <th>STT</th>
+                        <th>Tên file</th>
+                        <th>Thời gian tải lên</th>
+                        <th>Hết hạn lúc</th>
+                    </tr>
+                </thead>
+                <tbody id="fileList"></tbody>
+            </table>
         </div>
     </div>
 
     <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            // Fetch available files for download
+        // Format timestamp to readable date
+        function formatTime(timestamp) {
+            const date = new Date(timestamp);
+            return date.toLocaleString('vi-VN');
+        }
+
+        // Function to refresh file list
+        function refreshFileList() {
             fetch('/files')
                 .then(response => response.json())
                 .then(files => {
                     const fileList = document.getElementById("fileList");
-                    files.forEach(file => {
-                        const li = document.createElement("li");
-                        const a = document.createElement("a");
-                        a.href = `/download/${file}`;
-                        a.textContent = file;
-                        li.appendChild(a);
-                        fileList.appendChild(li);
+                    fileList.innerHTML = '';
+                    files.forEach((file, index) => {
+                        const tr = document.createElement("tr");
+                        tr.innerHTML = `
+                            <td>${index + 1}</td>
+                            <td><a href="/download/${file.name}">${file.name}</a></td>
+                            <td>${formatTime(file.uploadTime)}</td>
+                            <td>${formatTime(file.expiryTime)}</td>
+                        `;
+                        fileList.appendChild(tr);
                     });
                 });
+        }
+
+        document.addEventListener("DOMContentLoaded", function () {
+            // Load file list on page load
+            refreshFileList();
 
             // Handle file upload with progress bar
             const form = document.getElementById("uploadForm");
@@ -54,6 +83,15 @@
             form.addEventListener("submit", function (e) {
                 e.preventDefault();
                 const file = document.getElementById("fileInput").files[0];
+                const maxSize = 500 * 1024 * 1024; // 500MB
+
+                // Check file size before upload
+                if (file.size > maxSize) {
+                    status.textContent = "File quá lớn! Giới hạn 500 MB";
+                    status.style.color = "red";
+                    return;
+                }
+
                 const formData = new FormData();
                 formData.append("file", file);
 
@@ -69,15 +107,34 @@
                     }
                 };
 
-                // Reset the progress bar once the upload is complete
+                // Handle upload complete
                 xhr.onload = function () {
                     if (xhr.status === 200) {
                         progressBar.value = 0;
                         status.textContent = "Upload complete!";
+                        status.style.color = "green";
+                        document.getElementById("fileInput").value = "";
+                        refreshFileList();
                     } else {
-                        status.textContent = "Upload failed.";
+                        status.textContent = "Upload failed: " + xhr.responseText;
+                        status.style.color = "red";
                     }
                 };
+
+                // Handle network errors
+                xhr.onerror = function () {
+                    status.textContent = "Network error - check connection";
+                    status.style.color = "red";
+                };
+
+                // Handle timeout
+                xhr.ontimeout = function () {
+                    status.textContent = "Upload timeout - file too large?";
+                    status.style.color = "red";
+                };
+
+                // Set timeout to 30 minutes
+                xhr.timeout = 30 * 60 * 1000;
 
                 xhr.send(formData);
             });

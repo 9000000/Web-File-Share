@@ -22,6 +22,20 @@ h1 {
 
 .upload-section, .download-section {
     margin-top: 20px;
+    clear: both;
+}
+
+.download-section {
+    text-align: center;
+}
+
+.download-section h2 {
+    text-align: center;
+}
+
+.download-section ul {
+    display: inline-block;
+    text-align: left;
 }
 
 button {
@@ -78,4 +92,51 @@ progress::-webkit-progress-bar {
 progress::-webkit-progress-value {
     background-color: #5cb85c;
     border-radius: 5px;
+}
+
+.notice {
+    background-color: #fff3cd;
+    border: 1px solid #ffc107;
+    color: #856404;
+    padding: 12px 15px;
+    border-radius: 5px;
+    text-align: right;
+    margin-bottom: 20px;
+    display: inline-block;
+    float: right;
+}
+
+#fileTable {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+}
+
+#fileTable th,
+#fileTable td {
+    border: 1px solid #ddd;
+    padding: 10px 12px;
+    text-align: center;
+}
+
+#fileTable th {
+    background-color: #5cb85c;
+    color: white;
+}
+
+#fileTable tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+#fileTable tr:hover {
+    background-color: #f1f1f1;
+}
+
+#fileTable a {
+    color: #007bff;
+    text-decoration: none;
+}
+
+#fileTable a:hover {
+    text-decoration: underline;
 }
